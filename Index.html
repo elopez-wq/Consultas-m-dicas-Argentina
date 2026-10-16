@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Consultas médicas ambulatorias por especialidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#F2F6F7;--card:#fff;--ink:#12303A;--mut:#5B7480;--line:#D7E3E7;--ac:#0E6F7C;--hl:#FFF1C7;--pos:#1E7B4A;--neg:#B3362F;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1D22;--card:#162A31;--ink:#E4EEF1;--mut:#92AAB3;--line:#27414A;--ac:#4FC3CF;--hl:#3A3214;--pos:#5BD08C;--neg:#FF8A80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1D22;--card:#162A31;--ink:#E4EEF1;--mut:#92AAB3;--line:#27414A;--ac:#4FC3CF;--hl:#3A3214;--pos:#5BD08C;--neg:#FF8A80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.app{max-width:1280px;margin:0 auto;padding:20px 16px 32px}
+h1{font:600 28px/1.15 'IBM Plex Serif',Georgia,serif;margin:0 0 4px}
+.sub{color:var(--mut);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:18px}
+h2{font:600 16px/1.2 'IBM Plex Sans',sans-serif;margin:0 0 4px}
+.mut{color:var(--mut);font-size:13px}
+label.f{display:block;font-weight:500;margin:0 0 6px}
+select,input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+.btns{display:flex;gap:8px;margin:10px 0}
+button{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+button:hover{border-color:var(--ac)}
+#ls{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+#ls label{display:flex;gap:8px;padding:4px 0;font-size:13.5px;cursor:pointer}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-top:10px}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.kp div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kp b{display:block;font:600 22px/1.2 'IBM Plex Serif',Georgia,serif}
+.cw{position:relative;height:340px}
+#em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+ol{list-style:none;margin:10px 0 0;padding:0;max-height:560px;overflow:auto}
+ol li{display:grid;grid-template-columns:28px minmax(120px,260px) 1fr 62px 92px;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:13.5px}
+ol li:hover{background:var(--bg)}
+ol li.on{background:var(--hl)}
+.k{color:var(--mut);text-align:right}
+.b{height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.b i{display:block;height:100%;background:var(--ac);border-radius:5px}
+.p{font-weight:600;text-align:right}.c{color:var(--mut);text-align:right}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{font-weight:600;color:var(--mut)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+footer{color:var(--mut);font-size:12.5px;max-width:900px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.kp{grid-template-columns:1fr}ol li{grid-template-columns:24px 1fr 60px;}ol li .b,ol li .c{display:none}}
+</style></head><body><div class="app">
+<h1>Consultas médicas ambulatorias</h1>
+<p class="sub">Subsector oficial, Argentina, 2013–2023. Elegí un año y las especialidades que querés comparar.</p>
+<div class="grid">
+<aside class="card">
+ <label class="f" for="yr">Año del ranking</label><select id="yr"></select>
+ <label class="f" for="q" style="margin-top:14px">Especialidades <span class="mut" id="cnt"></span></label>
+ <input id="q" type="search" placeholder="Buscar especialidad…">
+ <div class="btns"><button id="t5">Las 5 con más consultas</button><button id="cl">Limpiar</button></div>
+ <div id="ls"></div>
+ <label class="chk"><input type="checkbox" id="hr" checked> Ocultar categorías residuales en el ranking (resto, sin especificar, no clasificables)</label>
+ <label class="chk"><input type="checkbox" id="so"> Ranking solo con las seleccionadas</label>
+ <label class="chk"><input type="checkbox" id="lg"> Escala logarítmica en el gráfico</label>
+</aside>
+<main>
+ <div class="kp"><div><span class="mut" id="k1l"></span><b id="k1"></b></div><div><span class="mut" id="k2l"></span><b id="k2"></b></div><div><span class="mut">Especialidades con datos en el año</span><b id="k3"></b></div></div>
+ <section class="card"><h2>Consultas por año</h2><p class="mut">Una línea por especialidad seleccionada. El punto grande marca el año elegido. 2016 no tiene datos en la base.</p>
+  <div class="cw"><canvas id="cv" role="img" aria-label="Gráfico de líneas de consultas por año y especialidad"></canvas><div id="em" hidden>Elegí al menos una especialidad en el panel.</div></div></section>
+ <section class="card"><h2 id="rt"></h2><p class="mut" id="rs"></p><ol id="rk"></ol></section>
+ <section class="card"><h2>Tasas de cambio de las seleccionadas</h2><p class="mut">Variación interanual del año elegido, variación total del período con datos, tasa anual compuesta y promedio simple de las variaciones interanuales.</p><div class="tw"><table id="tb"></table></div></section>
+</main></div>
+<footer><p>Fuente: Consultas Médicas Ambulatorias. República Argentina. Ministerio de Salud. Dirección de Estadística e Información en Salud (DEIS). Cantidad de Consultas Médicas Ambulatorias por Unidad Operativa del Subsector Oficial. República Argentina.</p>
+<p>Notas: no hay datos de 2016; 2017 se compara con 2015 y se expresa como variación anual equivalente. Los porcentajes del ranking son sobre el total de consultas del año, que incluye las categorías residuales. Las categorías vacías o con "-" en la fuente se tratan como sin dato.</p></footer>
+</div>
+<script>
+const D={"y":[2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],"t":[114758302,116882693,121587335,null,125484690,140471581,148253881,104396418,135807052,147003434,153290425],"s":{"Ablación e Implante de Organos":[13653,14230,17744,null,15180,8823,9371,6654,8263,11184,11833],"Adolescencia":[160000,184045,171453,null,175363,175616,156706,71244,103115,148959,136539],"Alergia":[281214,290461,242566,null,244029,208769,210119,105759,163873,203227,194702],"Alergia Pediátrica":[57432,51974,60091,null,73903,55044,54302,23971,28746,28507,54130],"Anestesiología":[40483,44731,59028,null,69587,78784,77895,33419,47023,74057,95057],"Atención relacionada con COVID-19":[null,null,null,null,null,null,null,null,536730,193698,185],"Cardiología":[2131263,2197327,2314063,null,2409343,2574559,2715246,1679908,2260357,2736911,3177024],"Cardiología Pediátrica":[205899,200150,194146,null,213139,488740,477776,205492,326064,307347,316313],"Cirugía Cardiovascular":[18068,17769,18349,null,23698,25432,18824,8594,8965,18351,18853],"Cirugía Cardiovascular Pediátrica":[4852,3145,1483,null,2149,587,734,327,746,2241,1745],"Cirugía de Cabeza y Cuello":[22599,21894,24217,null,23733,26070,26508,10895,19074,23106,23670],"Cirugía de Cabeza y Cuello en Pediatría":[578,544,654,null,714,398,446,97,297,293,0],"Cirugía de Mano":[2624,2234,1620,null,2099,73,0,6,0,0,7],"Cirugía de Mano en Pediatría":[817,599,512,null,575,0,0,0,0,0,0],"Cirugía de Quemados y Plástica":[5526,3670,5190,null,16160,33644,30236,18272,18744,22682,5619],"Cirugía de Quemados y Plástica en Pediatría":[12461,11272,14146,null,10462,14464,11395,4602,8912,9636,20657],"Cirugía del Recién Nacido - Cirugía Neonatológica":[695,345,309,null,397,384,311,64,0,0,0],"Cirugía General - Clínica Quirúrgica":[951146,1019598,1011270,null,1058649,1151920,1176999,711113,975183,1234388,1164161],"Cirugía Máxilo Facial":[15019,12721,14866,null,16369,18615,20535,8868,15128,19250,21060],"Cirugía Pediátrica":[97385,97142,104423,null,102803,109131,111360,47498,73458,85351,94313],"Cirugía Plástica - Reparadora":[149006,148525,154748,null,138228,145981,144919,55100,77836,104009,113482],"Cirugía Torácica - Cirugía de Tórax y Cardiovascular":[13466,11455,12272,null,11657,11308,11100,3771,6224,10580,10993],"Cirugía Torácica Pediátrica":[937,738,837,null,771,557,604,278,766,924,457],"Otras Unidades Operativas de Cirugía":[5182,3117,2915,null,2825,4953,7528,3157,5685,7297,2944],"Clínica Médica":[10525735,10506416,10342479,null,10121761,11095123,11587073,9551545,12424478,14297685,14167050],"Crecimiento y Desarrollo":[228122,231075,233698,null,223824,247231,262413,172908,243201,296510,293378],"Dermatología":[978386,1017298,1057826,null,1094090,1112031,1103567,551255,819728,1019217,1127899],"Dermatología Pediátrica":[93347,103583,107360,null,113783,111197,119675,56455,75806,99366,133571],"Diversidad Sexual":[null,null,null,null,96,893,793,648,1990,3755,10656],"Emergencia - Urgencias":[30705858,31193050,33337542,null,34481887,34320180,35064979,23484781,28919223,35088546,36303756],"Endocrinología":[794765,838291,935388,null,1042440,1158409,1205399,743012,1098164,1241803,1392583],"Endocrinología Pediátrica":[81139,84146,85247,null,94436,99547,110716,61719,78757,93396,98445],"Estomatología":[2738,3487,2108,null,1924,1793,1598,3,2083,1069,3359],"Fertilidad - Esterilidad Conyugal":[17406,16927,18627,null,20544,17335,17126,6370,13803,14516,10150],"Gastroenterología":[419120,417910,459601,null,482162,496405,500835,258587,372814,501621,583895],"Gastroenterología Pediátrica":[67328,67693,77688,null,88334,84336,86515,40949,58138,68769,75174],"Genética":[7529,6499,9530,null,11328,8791,8234,3760,3376,8981,5979],"Genética Pediátrica":[15605,17044,19101,null,23126,22233,20575,10394,16540,18721,12937],"Gerontología":[74272,72543,72363,null,71020,80551,81794,81872,94906,117645,145764],"Ginecología":[2819677,2633995,2879309,null,2879163,3077621,3200918,2031759,2742673,3200068,3407262],"Ginecología Pediátrica":[18102,20458,19629,null,18940,21730,14616,8298,12433,14899,10940],"Hematología":[422125,422288,459411,null,487946,520276,496665,303857,373299,452083,458389],"Hematología Pediátrica":[44839,51236,56924,null,53513,47839,51484,32773,37881,44063,41219],"Hepatología":[25632,31466,31404,null,18698,25705,23239,8643,16109,15979,11384],"Hepatología Pediátrica":[2845,2732,2636,null,3333,2424,2387,2297,2199,3903,1772],"Infectología":[732121,715312,763931,null,770594,806082,779062,608040,884072,740390,760321],"Infectología Pediátrica":[55610,60829,63626,null,62964,62467,62497,41014,58826,53298,53964],"Inmunohematología":[4763,4634,4309,null,6147,441,675,535,649,408,65],"Inmunología":[22022,24840,27298,null,31999,38989,55970,15726,27781,45422,29164],"Inmunología Pediátrica":[36910,28640,21072,null,24268,18786,18339,10455,18023,22403,13215],"Medicina del Deporte":[121633,132310,124193,null,149591,133835,137728,68300,117446,166293,234639],"Medicina Familiar - Generalista de Familia":[840620,866652,1328493,null,796231,935604,1029100,763978,930811,1033616,1069623],"Medicina Física y Rehabilitación":[237969,251052,262220,null,294124,415525,457976,194143,237459,269866,326221],"Medicina Física y Rehabilitación Pediátrica":[1922,1315,8176,null,2310,2122,1879,1095,1641,2409,3232],"Medicina General":[19482699,19174768,18960820,null,19056358,19721338,19726601,15233417,17742565,20208485,22823898],"Medicina Legal":[161935,170590,151364,null,171971,184902,191893,123539,126503,171159,192087],"Medicinas Alternativas":[9811,7604,7401,null,7828,8437,9278,2235,1757,3558,3472],"Nefrología":[195699,222283,241096,null,247266,263098,268145,174786,239567,287817,342501],"Nefrología Pediátrica":[71391,66562,64742,null,62837,62610,64293,34103,50201,54987,64008],"Neonatología":[430714,412709,422436,null,406292,421051,408222,262124,297140,320901,355149],"Neumonología":[576890,582445,640984,null,675202,692889,728090,471660,676251,787592,851264],"Neumonología Pediátrica":[167872,171793,188654,null,198585,198564,217584,129680,221003,220271,261593],"Neurocirugía":[125187,116996,120265,null,120548,113825,127540,56204,86563,117110,126822],"Neurocirugía Neonatal y Pediátrica":[16567,16636,17558,null,16556,11254,10121,3674,14824,14300,15698],"Neurología":[686577,703229,761183,null,782438,822433,834465,476067,655615,784548,848646],"Neurología Pediátrica":[178267,180058,200930,null,220688,228090,225179,132246,176546,199016,225644],"Nutrición":[659691,657117,652010,null,762813,1635569,1746706,978147,1484783,963749,1090431],"Nutrición en Pediatría":[53316,56415,61260,null,69456,70075,68837,43259,68884,73404,87673],"Obstetricia":[1535249,1518392,1595843,null,1811400,3515262,3513462,2799828,3386583,1852775,1937581],"Oftalmología":[2643425,2565090,2640510,null,2894731,3010169,3161843,1423557,2240984,3034748,3191321],"Oftalmología Pediátrica":[150594,152371,160507,null,200774,189793,189485,138890,217250,226495,278560],"Oncología":[453295,467365,489032,null,519106,564995,557920,390770,505637,573948,593740],"Oncología Pediátrica":[33920,34408,36064,null,36329,35321,32868,22284,30642,21560,31331],"Otorrinolaringología - Garganta, Nariz y Oído - ORL":[919074,902317,949492,null,961855,966229,991719,514092,703765,953934,940374],"Otorrinolaringología Pediátrica":[126191,130614,131246,null,125323,106287,101296,44622,61643,83105,98377],"Patología Regional y General":[4702,7620,9070,null,7923,1641,1542,1446,1687,2552,3594],"Pediatría":[15474102,15233982,15414218,null,15179720,15624299,15795377,10137913,12178152,15189276,16375628],"Proctología":[42894,41476,41189,null,36922,39430,39739,17809,33795,41506,52056],"Quemados":[32868,32202,32902,null,9330,7146,2767,600,3716,9885,4099],"Quemados en Pediatría":[19066,17168,17076,null,4687,3813,3461,2228,2790,3609,3374],"Reumatología General y Pediátrica":[286033,297347,313993,null,338883,336011,340953,174800,233718,329139,337877],"Salud Comunitaria":[38341,59600,51535,null,39323,37993,38067,15729,16165,8681,1683],"Salud Mental":[1464531,1520463,1598137,null,1865845,2050250,2189834,2080882,2510231,2575666,2984773],"Salud Mental en Pediatría":[43427,46894,44469,null,67088,63395,56431,48494,79699,115841,103185],"Salud Reproductiva":[329900,341157,351266,null,427662,496446,524793,502086,740987,637590,660654],"Servicio multidisciplinar":[null,null,null,null,null,null,null,null,347,3168,4591],"Terapia Intensiva e Intermedia":[720,121,1586,null,1359,188,6157,6260,14971,15758,15394],"Terapia Intensiva e Intermedia Neonatal y Pediátrica":[5284,4778,3240,null,7438,4821,7873,3035,5064,6554,5284],"Tocoginecología":[3073694,3119440,3158119,null,3037446,2973982,3040562,2130527,2625360,2876338,3457862],"Toxicología":[74964,31306,30158,null,43296,40340,26456,9777,13252,13441,13132],"Toxicología Pediátrica":[45586,45746,40711,null,32365,6631,5029,1271,2819,5192,12271],"Traumatología":[2070697,2038124,2170530,null,2242114,2324321,2352966,1253873,1812202,2296163,2550082],"Traumatología Pediátrica":[165018,177345,198250,null,198441,198799,196559,94826,152017,186446,255761],"Urología - Urinarias":[533385,521556,530776,null,547233,584387,595762,333831,445756,574886,618955],"Urología Pediátrica":[25935,28468,31002,null,34521,27241,26478,12026,17523,28025,31926],"Vascular Periférico":[156808,156915,155673,null,153941,156849,167022,93112,142379,166726,170782],"Resto de unidades Operativas":[8593561,10653009,11615722,null,12379607,22430726,26015094,20472845,29507368,24736893,22447990],"Unidades Operativas no especificadas .":[9977,36807,44560,null,1387299,141328,1878671,128916,6622,11330,27543],"Consultas no clasificables según Serv. o Unid. Op.":[0,0,1665,null,11482,0,0,1304688,1902228,2036609,2542009]}};
+const Y=D.y,N=Object.keys(D.s).sort((a,b)=>a.localeCompare(b,'es')),RES=/^(Resto de|Unidades Operativas no|Consultas no clasificables)/;
+const YV=Y.filter((_,i)=>D.t[i]!=null),PAL=['#0E7C86','#D1495B','#E0A100','#30638E','#6A4C93','#2E933C','#8D5B4C','#E36414','#1B998B','#7A7A7A'];
+let sel=new Set(['Cardiología','Neurología','Salud Mental','Nutrición','Dermatología']),year=YV[YV.length-1],ch;
+const $=id=>document.getElementById(id),idx=y=>Y.indexOf(y),css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt=n=>n.toLocaleString('es-AR'),pct=(x,d=1)=>(x*100).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const sg=(x,d=1)=>x==null?'—':`<span class="${x<0?'neg':'pos'}">${x>0?'+':''}${pct(x,d)}</span>`;
+$('yr').innerHTML=YV.slice().reverse().map(y=>`<option>${y}</option>`).join('');
+function list(){const q=norm($('q').value);$('ls').innerHTML=N.filter(n=>norm(n).includes(q)).map(n=>`<label><input type="checkbox" value="${n}" ${sel.has(n)?'checked':''}><span>${n}</span></label>`).join('')||'<p class="mut">No hay especialidades con ese texto.</p>';}
+function prev(a,i){for(let j=i-1;j>=0;j--)if(a[j]!=null)return j;return -1}
+function yoy(a,i){const p=prev(a,i);return a[i]!=null&&p>=0&&a[p]>0?Math.pow(a[i]/a[p],1/(Y[i]-Y[p]))-1:null}
+function stats(n){const a=D.s[n];let f=-1,l=-1;a.forEach((v,i)=>{if(v!=null){if(f<0)f=i;l=i}});
+ const ok=f>=0&&a[f]>0&&l>f,vt=ok?a[l]/a[f]-1:null,cg=ok?Math.pow(a[l]/a[f],1/(Y[l]-Y[f]))-1:null;
+ const ys=a.map((_,i)=>yoy(a,i)).filter(x=>x!=null);return{p:f<0?'—':Y[f]+'–'+Y[l],vt,cg,ya:ys.length?ys.reduce((s,x)=>s+x,0)/ys.length:null}}
+function chart(){const ink=css('--mut'),grid=css('--line'),log=$('lg').checked;
+ const ns=[...sel].sort((a,b)=>a.localeCompare(b,'es'));$('em').hidden=ns.length>0;if(ch)ch.destroy();
+ ch=new Chart($('cv'),{type:'line',data:{labels:Y,datasets:ns.map((n,k)=>({label:n,data:D.s[n],borderColor:PAL[k%10],backgroundColor:PAL[k%10],borderWidth:2.2,tension:0,spanGaps:false,pointRadius:Y.map(y=>y===year?7:3),pointHoverRadius:7}))},
+ options:{animation:false,responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:false},
+ scales:{x:{ticks:{color:ink},grid:{color:grid}},y:{type:log?'logarithmic':'linear',grid:{color:grid},title:{display:true,text:'Número de consultas',color:ink},
+ ticks:{color:ink,callback:v=>v>=1e6?(v/1e6).toLocaleString('es-AR')+' M':v>=1e3?(v/1e3).toLocaleString('es-AR')+' mil':v}}},
+ plugins:{legend:{position:'bottom',labels:{color:ink,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'sin dato':fmt(c.parsed.y))}}}}});}
+function draw(){const i=idx(year),T=D.t[i],p=prev(D.t,i);
+ $('cnt').textContent='('+sel.size+' seleccionadas)';
+ $('k1l').textContent='Consultas totales en '+year;$('k1').textContent=fmt(T);
+ $('k2l').textContent=p>=0?'Variación del total vs '+Y[p]+(Y[i]-Y[p]>1?' (anual equivalente)':''):'Variación del total';$('k2').innerHTML=sg(yoy(D.t,i));
+ $('k3').textContent=N.filter(n=>D.s[n][i]>0).length;
+ let r=N.map(n=>[n,D.s[n][i]]).filter(x=>x[1]>0);
+ if($('hr').checked)r=r.filter(x=>!RES.test(x[0]));if($('so').checked)r=r.filter(x=>sel.has(x[0]));
+ r.sort((a,b)=>b[1]-a[1]);const mx=r.length?r[0][1]/T:1;
+ $('rt').textContent='Ranking de especialidades en '+year;$('rs').textContent='Porcentaje sobre el total de consultas del año. Tocá una fila para sumarla o quitarla del gráfico.';
+ $('rk').innerHTML=r.map(([n,v],k)=>`<li data-n="${n}" class="${sel.has(n)?'on':''}"><span class="k">${k+1}</span><span>${n}</span><span class="b"><i style="width:${v/T/mx*100}%"></i></span><span class="p">${pct(v/T,2)}</span><span class="c">${fmt(v)}</span></li>`).join('')||'<li class="mut">No hay especialidades para mostrar con estos filtros.</li>';
+ const ns=[...sel].sort((a,b)=>a.localeCompare(b,'es'));
+ $('tb').innerHTML=ns.length?`<tr><th>Especialidad</th><th>Consultas ${year}</th><th>% del total</th><th>Var. interanual ${year}</th><th>Período con datos</th><th>Variación total</th><th>Tasa anual compuesta</th><th>Promedio interanual</th></tr>`+ns.map(n=>{const v=D.s[n][i],s=stats(n);return `<tr><td>${n}</td><td>${v==null?'—':fmt(v)}</td><td>${v==null?'—':pct(v/T,2)}</td><td>${sg(yoy(D.s[n],i))}</td><td>${s.p}</td><td>${sg(s.vt)}</td><td>${sg(s.cg)}</td><td>${sg(s.ya)}</td></tr>`}).join(''):'<tr><td class="mut">Elegí especialidades para ver sus tasas.</td></tr>';
+ chart();}
+$('yr').onchange=e=>{year=+e.target.value;draw()};
+$('q').oninput=list;
+$('ls').onchange=e=>{const n=e.target.value;e.target.checked?sel.add(n):sel.delete(n);draw()};
+$('rk').onclick=e=>{const li=e.target.closest('li');if(!li||!li.dataset.n)return;const n=li.dataset.n;sel.has(n)?sel.delete(n):sel.add(n);list();draw()};
+$('t5').onclick=()=>{const i=idx(year);sel=new Set(N.filter(n=>!RES.test(n)&&D.s[n][i]>0).sort((a,b)=>D.s[b][i]-D.s[a][i]).slice(0,5));list();draw()};
+$('cl').onclick=()=>{sel=new Set();list();draw()};
+['hr','so','lg'].forEach(id=>$(id).onchange=draw);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',chart);
+new MutationObserver(chart).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+list();draw();
+</script></body></html>
